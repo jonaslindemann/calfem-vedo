@@ -377,7 +377,7 @@ node_bc_idx = np.array([
 ])
 
 node_load = np.array([
-	[0, 0, -1000],
+	[0, 0, -1000000],
 ])
 
 node_load_idx = np.array([
