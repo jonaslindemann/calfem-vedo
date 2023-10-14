@@ -3,10 +3,7 @@
 import sys
 import numpy as np
 import calfem.core as cfc
-import calfem.vis_mpl as cfv
-
-import vedo as vd
-import vis_vedo as vvd
+import beam_utils as cfu
 
 class BeamBarSolver:
     def __init__(self, cfmodel):
@@ -35,10 +32,10 @@ class BeamBarSolver:
         # --- Extract element coordinates
 
         if self.edof_beams.shape[0]>0:
-            ex_bm, ey_bm, ez_bm = cfc.coord_extract(self.edof_beams, self.coords_beams, self.dofs_beams)
+            self.ex_bm, self.ey_bm, self.ez_bm = cfc.coord_extract(self.edof_beams, self.coords_beams, self.dofs_beams)
 
         if self.edof_bars.shape[0]>0:
-            ex_br, ey_br, ez_br = cfc.coord_extract(self.edof_bars, self.coords_bars, self.dofs_bars)
+            self.ex_br, self.ey_br, self.ez_br = cfc.coord_extract(self.edof_bars, self.coords_bars, self.dofs_bars)
 
         # --- Setup global matrices
 
@@ -62,14 +59,14 @@ class BeamBarSolver:
         # --- Assemble beams
 
         if self.n_beams>0:
-            for elx, ely, elz, dofs, epi, eo in zip(ex_bm, ey_bm, ez_bm, self.edof_beams, self.beam_mat_idx, self.beam_orientation):
+            for elx, ely, elz, dofs, epi, eo in zip(self.ex_bm, self.ey_bm, self.ez_bm, self.edof_beams, self.beam_mat_idx, self.beam_orientation):
                 Ke = cfc.beam3e(elx, ely, elz, eo, self.ep[epi])
                 self.K = cfc.assem(dofs, self.K, Ke)
 
         # --- Assemble bars
 
         if self.n_bars>0:
-            for elx, ely, elz, dofs, epi in zip(ex_br, ey_br, ez_br, self.edof_bars, self.bar_mat_idx):
+            for elx, ely, elz, dofs, epi in zip(self.ex_br, self.ey_br, self.ez_br, self.edof_bars, self.bar_mat_idx):
                 E = self.ep[epi][0]
                 A = self.ep[epi][2]
                 Ke = cfc.bar3e(elx, ely, elz, [E, A])
@@ -86,7 +83,7 @@ class BeamBarSolver:
             bc_dofs = self.dofs_beams[ni-1]
             for i, p_dof in enumerate(bc_prescr_dofs):
                 if p_dof == 1:
-                    self.bc.append(bc_dofs[i])
+                    bc.append(bc_dofs[i])
                     bc_vals.append(bc_values[i])
 
         for ni, li in self.node_load_idx:
@@ -128,14 +125,14 @@ class BeamBarSolver:
                 self.bar_forces.append([es, edi, eci])
 
 
-        min_displ_bm, max_displ_bm = vvd.calc_beam_displ_limits(a, self.coords_beams, self.edof_beams, self.dofs_beams)
-        min_displ_br, max_displ_br = vvd.calc_bar_displ_limits(a, self.coords_bars, self.edof_bars, self.dofs_bars)
+        min_displ_bm, max_displ_bm = cfu.calc_beam_displ_limits(self.a, self.coords_beams, self.edof_beams, self.dofs_beams)
+        min_displ_br, max_displ_br = cfu.calc_bar_displ_limits(self.a, self.coords_bars, self.edof_bars, self.dofs_bars)
 
         self.max_displ = max(max_displ_bm, max_displ_br)
         self.min_displ = min(min_displ_bm, min_displ_br)
 
-        lx_bm, ly_bm, lz_bm = vvd.calc_size(self.coords_beams)
-        lx_br, ly_br, lz_br = vvd.calc_size(self.coords_bars)
+        lx_bm, ly_bm, lz_bm = cfu.calc_size(self.coords_beams)
+        lx_br, ly_br, lz_br = cfu.calc_size(self.coords_bars)
 
         self.lx = max(lx_bm, lx_br)
         self.ly = max(ly_bm, ly_br)
