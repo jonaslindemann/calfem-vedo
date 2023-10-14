@@ -3,7 +3,7 @@
 import sys
 import numpy as np
 import calfem.core as cfc
-import beam_utils as cfu
+import calfem.utils as cfu
 
 class BeamBarSolver:
     def __init__(self, cfmodel):
