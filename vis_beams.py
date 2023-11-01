@@ -2,7 +2,7 @@
 
 import numpy as np
 import calfem.core as cfc
-import beam_utils as cfu
+import calfem.utils as cfu
 import vedo as vd
 
 class VedoCanvas:
